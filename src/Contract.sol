@@ -31,7 +31,7 @@ contract WagumiSBTMVP is
 
     function init() public virtual initializer {
         __Ownable_init();
-        __ERC721_init("Soul Bount Token Compatible", "SBTC");
+        __ERC721_init("Wagumi DAO Soul Bound Token", "WDSBT");
 
         grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         grantRole(PAUSER_ROLE, msg.sender);
