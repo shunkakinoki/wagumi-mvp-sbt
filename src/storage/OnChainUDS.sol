@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 
 bytes32 constant DIAMOND_STORAGE_ONCHAIN = keccak256("diamond.storage.onchain");
 
-// Maybe move to https://github.com/0xsequence/sstore2 ?
 function s() pure returns (OnChainDS storage diamondStorage) {
     bytes32 slot = DIAMOND_STORAGE_ONCHAIN;
     assembly { diamondStorage.slot := slot } // prettier-ignore
