@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 error NotPauser();
 error TokenTransferWhilePaused();
+error IncorrectSignature();
 
 contract WagumiSBTMVP is
     UUPSUpgrade,
@@ -45,8 +46,10 @@ contract WagumiSBTMVP is
         return "URI";
     }
 
-    function mint(address to, uint256 tokenId) public onlyOwner {
-        _mint(to, tokenId);
+    function mint(uint256 tokenId, bytes calldata signature) public onlyOwner {
+        if (!verifySig(signature, tokenId)) revert IncorrectSignature();
+
+        _mint(msg.sender, tokenId);
     }
 
     function pause() public {
