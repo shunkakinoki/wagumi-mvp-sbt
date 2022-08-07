@@ -8,6 +8,7 @@ import {OwnableUDS} from "UDS/auth/OwnableUDS.sol";
 import {PausableUDS} from "UDS/auth/PausableUDS.sol";
 import {UUPSUpgrade} from "UDS/proxy/UUPSUpgrade.sol";
 import {Initializable} from "UDS/auth/Initializable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 error NotPauser();
 error TokenTransferWhilePaused();
@@ -20,6 +21,8 @@ contract WagumiSBTMVP is
     PausableUDS,
     ERC721UDS
 {
+    using ECDSA for bytes32;
+
     /// @dev keccak256('PAUSER_ROLE')
     bytes32 public constant PAUSER_ROLE =
         0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a;
@@ -69,6 +72,19 @@ contract WagumiSBTMVP is
             interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
             interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
             interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
+    }
+
+    function verifySig(bytes memory signature, uint256 tokenId)
+        internal
+        view
+        returns (bool)
+    {
+        address signingAddress;
+        bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, tokenId));
+        signingAddress = messageHash.toEthSignedMessageHash().recover(
+            signature
+        );
+        return hasRole(MINTER_ROLE, signingAddress);
     }
 
     function transferFrom(
