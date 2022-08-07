@@ -9,6 +9,7 @@ import {PausableUDS} from "UDS/auth/PausableUDS.sol";
 import {UUPSUpgrade} from "UDS/proxy/UUPSUpgrade.sol";
 import {Initializable} from "UDS/auth/Initializable.sol";
 import {OnChainUDS} from "./storage/OnChainUDS.sol";
+import {ContributionPointUDS} from "./storage/ContributionPointUDS.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 error NotPauser();
@@ -23,7 +24,8 @@ contract WagumiSBTMVP is
     AccessControlUDS,
     PausableUDS,
     ERC721UDS,
-    OnChainUDS
+    OnChainUDS,
+    ContributionPointUDS
 {
     using ECDSA for bytes32;
 
@@ -49,10 +51,16 @@ contract WagumiSBTMVP is
         return "URI";
     }
 
-    function mint(uint256 tokenId, bytes calldata signature) public onlyOwner {
-        if (!verifySig(signature, tokenId)) revert IncorrectSignature();
+    function mint(
+        uint256 tokenId,
+        uint256 contributionPoint,
+        bytes calldata signature
+    ) public onlyOwner {
+        if (!verifySig(signature, contributionPoint, tokenId))
+            revert IncorrectSignature();
 
         _mint(msg.sender, tokenId);
+        _addMemberContributionPoint(msg.sender, contributionPoint);
     }
 
     function pause() public {
@@ -85,13 +93,15 @@ contract WagumiSBTMVP is
             interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
     }
 
-    function verifySig(bytes memory signature, uint256 tokenId)
-        internal
-        view
-        returns (bool)
-    {
+    function verifySig(
+        bytes memory signature,
+        uint256 tokenId,
+        uint256 contributionPoint
+    ) internal view returns (bool) {
         address signingAddress;
-        bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, tokenId));
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(msg.sender, tokenId, contributionPoint)
+        );
         signingAddress = messageHash.toEthSignedMessageHash().recover(
             signature
         );

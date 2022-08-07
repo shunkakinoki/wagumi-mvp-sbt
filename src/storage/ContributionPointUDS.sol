@@ -19,9 +19,9 @@ struct ContributionPointDS {
 contract ContributionPointUDS {
     /* ------------- internal ------------- */
 
-    function _setMemberContributionPoint(address member, uint256 point)
+    function _addMemberContributionPoint(address member, uint256 point)
         internal
     {
-        s().contributionPointStorage[member] = point;
+        s().contributionPointStorage[member] += point;
     }
 }
