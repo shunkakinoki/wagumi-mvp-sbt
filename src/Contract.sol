@@ -8,10 +8,12 @@ import {OwnableUDS} from "UDS/auth/OwnableUDS.sol";
 import {PausableUDS} from "UDS/auth/PausableUDS.sol";
 import {UUPSUpgrade} from "UDS/proxy/UUPSUpgrade.sol";
 import {Initializable} from "UDS/auth/Initializable.sol";
+import {OnChainUDS} from "./storage/OnChainUDS.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 error NotPauser();
 error TokenTransferWhilePaused();
+error NonExistentToken();
 error IncorrectSignature();
 
 contract WagumiSBTMVP is
@@ -20,7 +22,8 @@ contract WagumiSBTMVP is
     OwnableUDS,
     AccessControlUDS,
     PausableUDS,
-    ERC721UDS
+    ERC721UDS,
+    OnChainUDS
 {
     using ECDSA for bytes32;
 
@@ -62,6 +65,11 @@ contract WagumiSBTMVP is
         if (!hasRole(PAUSER_ROLE, msg.sender)) revert NotPauser();
 
         _unpause();
+    }
+
+    function updateTokenURI(uint256 tokenId, string calldata dataURI) public {
+        if (ownerOf(tokenId) != address(0)) revert NonExistentToken();
+        _storeOnChain(tokenId, dataURI);
     }
 
     function supportsInterface(bytes4 interfaceId)
